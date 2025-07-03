@@ -28,7 +28,7 @@
 set -e
 
 function help_menu () {
-  echo "Usage: `basename $0` -b base_commit_hash -x path/to/validation_executable"
+  echo "Usage: `basename $0` -b base_commit_hash -x \"validation_command\""
 }
 
 # Reset in case getopts has been used previously in the shell.
@@ -39,7 +39,7 @@ while getopts ":hb:x:" opt; do
       h) help_menu
          exit 0;;
       b) base=$OPTARG ;;
-      x) validation_exec=$OPTARG ;;
+      x) validation_cmd=$OPTARG ;;
       :) printf "Missing argument for -%s\n" "$OPTARG"
          help_menu
          exit 1;;
@@ -57,15 +57,15 @@ if [ -z "$base" ] ; then
   exit 1
 fi
 
-if [ -z "$validation_exec" ] ; then
-  echo "Missing path/to/validation_executable !"
+if [ -z "$validation_cmd" ] ; then
+  echo "Missing validation command !"
   help_menu
   exit 1
 fi
 
 set +e
 
-git rebase --autostash $base --exec $validation_exec
+git rebase --autostash $base --exec "$validation_cmd"
 result=$?
 
 set -e
