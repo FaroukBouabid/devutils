@@ -28,7 +28,7 @@
 set -e
 
 function help_menu () {
-  echo "Usage: `basename $0` -b base_commit_hash -x \"validation_command\""
+  echo "Usage: $(basename "$0") -b base_commit_hash -x \"validation_command\""
 }
 
 # Reset in case getopts has been used previously in the shell.
@@ -65,7 +65,7 @@ fi
 
 set +e
 
-git rebase --autostash $base --exec "$validation_cmd"
+git rebase --autostash "$base" --exec "$validation_cmd"
 result=$?
 
 set -e
@@ -79,7 +79,7 @@ elif [ $result -eq 1 ] ; then
   echo "+------------------------+"
   echo "Commit $err_commit has errors"
   echo "+------------------------+"
-  git --no-pager show --stat $err_commit
+  git --no-pager show --stat "$err_commit"
   git rebase --abort
 fi
 
