@@ -28,16 +28,17 @@
 set -e
 
 function help_menu () {
-  echo "Usage: $(basename "$0") -b base_commit_hash -x \"validation_command\""
+  echo "Usage: $(basename "$0") -d git_directory -b base_commit_hash -x \"validation_command\""
 }
 
 # Reset in case getopts has been used previously in the shell.
 OPTIND=1
 
-while getopts ":hb:x:" opt; do
+while getopts ":hd:b:x:" opt; do
    case $opt in
       h) help_menu
          exit 0;;
+      d) dir=$OPTARG ;;
       b) base=$OPTARG ;;
       x) validation_cmd=$OPTARG ;;
       :) printf "Missing argument for -%s\n" "$OPTARG"
@@ -63,9 +64,18 @@ if [ -z "$validation_cmd" ] ; then
   exit 1
 fi
 
+if [ -n "$dir" ] ; then
+  if [ ! -d "$dir" ]; then
+    echo "$dir doesn't exist !"
+    exit 1
+  fi
+else
+  dir="$(pwd)"
+fi
+
 set +e
 
-git rebase --autostash "$base" --exec "$validation_cmd"
+git -C "$dir" rebase --autostash "$base" --exec "$validation_cmd"
 result=$?
 
 set -e
@@ -75,12 +85,12 @@ if [ $result -eq 0 ] ; then
   echo "All commits have no errors"
   echo "+-------------------------+"
 elif [ $result -eq 1 ] ; then
-  err_commit=$(git rev-parse --short HEAD)
+  err_commit=$(git -C "$dir" rev-parse --short HEAD)
   echo "+------------------------+"
   echo "Commit $err_commit has errors"
   echo "+------------------------+"
-  git --no-pager show --stat "$err_commit"
-  git rebase --abort
+  git -C "$dir" --no-pager show --stat "$err_commit"
+  git -C "$dir" rebase --abort
 fi
 
 exit $result
