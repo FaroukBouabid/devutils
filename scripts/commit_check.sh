@@ -28,16 +28,17 @@
 set -e
 
 function help_menu () {
-  echo "Usage: $(basename "$0") -b base_commit_hash -x \"validation_command\""
+  echo "Usage: $(basename "$0") -d git_directory -b base_commit_hash -x \"validation_command\""
 }
 
 # Reset in case getopts has been used previously in the shell.
 OPTIND=1
 
-while getopts ":hb:x:" opt; do
+while getopts ":hd:b:x:" opt; do
    case $opt in
       h) help_menu
          exit 0;;
+      d) dir=$OPTARG ;;
       b) base=$OPTARG ;;
       x) validation_cmd=$OPTARG ;;
       :) printf "Missing argument for -%s\n" "$OPTARG"
@@ -63,12 +64,24 @@ if [ -z "$validation_cmd" ] ; then
   exit 1
 fi
 
+if [ -n "$dir" ] ; then
+  if [ ! -d "$dir" ]; then
+    echo "$dir doesn't exist !"
+  fi
+  cd "$dir"
+  restore_dir=$(pwd)
+fi
+
 set +e
 
 git rebase --autostash "$base" --exec "$validation_cmd"
 result=$?
 
 set -e
+
+if [ -n "$restore_dir" ] ; then
+  cd "$(restore_dir)"
+fi
 
 if [ $result -eq 0 ] ; then
   echo "+-------------------------+"
