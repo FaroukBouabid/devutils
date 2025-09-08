@@ -39,7 +39,7 @@ while getopts ":hd:b:x:" opt; do
    case $opt in
       h) help_menu
          exit 0;;
-      d) dir=$OPTARG ;;
+      d) git_dir=$OPTARG ;;
       b) base=$OPTARG ;;
       x) validation_cmd=$OPTARG ;;
       :) printf "Missing argument for -%s\n" "$OPTARG"
@@ -68,20 +68,20 @@ if [ -z "$validation_cmd" ] ; then
 fi
 
 # Check git directory exists in commandline
-if [ -n "$dir" ] ; then
-  if [ ! -d "$dir" ]; then
-    echo "$dir doesn't exist !"
+if [ -n "$git_dir" ] ; then
+  if [ ! -d "$git_dir" ]; then
+    echo "$git_dir doesn't exist !"
     exit 1
   fi
 else
   # Not in commandline --> default to active
-  dir="$(pwd)"
+  git_dir="$(pwd)"
 fi
 
 set +e
 
 # Execute rebase and validation
-git -C "$dir" rebase --autostash "$base" --exec "$validation_cmd"
+git -C "$git_dir" rebase --autostash "$base" --exec "$validation_cmd"
 result=$?
 
 set -e
@@ -92,12 +92,12 @@ if [ $result -eq 0 ] ; then
   echo "All commits have no errors"
   echo "+-------------------------+"
 elif [ $result -eq 1 ] ; then
-  err_commit=$(git -C "$dir" rev-parse --short HEAD)
+  err_commit=$(git -C "$git_dir" rev-parse --short HEAD)
   echo "+------------------------+"
   echo "Commit $err_commit has errors"
   echo "+------------------------+"
-  git -C "$dir" --no-pager show --stat "$err_commit"
-  git -C "$dir" rebase --abort
+  git -C "$git_dir" --no-pager show --stat "$err_commit"
+  git -C "$git_dir" rebase --abort
 fi
 
 exit $result
