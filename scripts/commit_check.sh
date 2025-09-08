@@ -28,18 +28,18 @@
 set -e
 
 function help_menu () {
-  echo "Usage: $(basename "$0") -d git_directory -b base_commit_hash -x \"validation_command\""
+  echo "Usage: $(basename "$0") -g git_directory -b base_commit_hash -x \"validation_command\""
 }
 
 # Reset in case getopts has been used previously in the shell.
 OPTIND=1
 
 # Parse commandline arguments
-while getopts ":hd:b:x:" opt; do
+while getopts ":hg:b:x:" opt; do
    case $opt in
       h) help_menu
          exit 0;;
-      d) git_dir=$OPTARG ;;
+      g) git_dir=$OPTARG ;;
       b) base=$OPTARG ;;
       x) validation_cmd=$OPTARG ;;
       :) printf "Missing argument for -%s\n" "$OPTARG"
