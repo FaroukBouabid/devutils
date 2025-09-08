@@ -34,6 +34,7 @@ function help_menu () {
 # Reset in case getopts has been used previously in the shell.
 OPTIND=1
 
+# Parse commandline arguments
 while getopts ":hd:b:x:" opt; do
    case $opt in
       h) help_menu
@@ -52,34 +53,40 @@ done
 
 shift $((OPTIND-1))
 
+# Check base commit hash exists in commandline
 if [ -z "$base" ] ; then
   echo "Missing base commit !"
   help_menu
   exit 1
 fi
 
+# Check validation command exists in commandline
 if [ -z "$validation_cmd" ] ; then
   echo "Missing validation command !"
   help_menu
   exit 1
 fi
 
+# Check git directory exists in commandline
 if [ -n "$dir" ] ; then
   if [ ! -d "$dir" ]; then
     echo "$dir doesn't exist !"
     exit 1
   fi
 else
+  # Not in commandline --> default to active
   dir="$(pwd)"
 fi
 
 set +e
 
+# Execute rebase and validation
 git -C "$dir" rebase --autostash "$base" --exec "$validation_cmd"
 result=$?
 
 set -e
 
+# Error summary
 if [ $result -eq 0 ] ; then
   echo "+-------------------------+"
   echo "All commits have no errors"
